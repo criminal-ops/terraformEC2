@@ -1,3 +1,19 @@
+Command to remove your Terraform-created EC2 instance
+cd ~/terraform-ec2
+terraform destroy
+
+When prompted, type:
+yes
+
+Important: If the EC2 instance was created from another computer or another Terraform state, this command may not find it. Also, resources created manually or managed by a different state will not automatically be removed.
+
+After successful destruction, Terraform should display:
+Destroy complete!
+
+
+
+
+
 Step 1: Open Ubuntu and update the system
 Open Ubuntu from the Windows Start menu.
 
