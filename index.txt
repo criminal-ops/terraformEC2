@@ -1,182 +1,155 @@
-Install Terraform
-Run each command separately.
+Step 1: Open Ubuntu and update the system
+Open Ubuntu from the Windows Start menu.
 
-Step 1 — Update package information
+Run:
 sudo apt update
-
-
-Step 2 — Install required tools
 sudo apt install -y wget curl gpg unzip
 
-
-Step 3 — Add the official Terraform package repository
+If prompted, enter your Ubuntu password.
+Step 2: Install Terraform
+2.1 Add the official HashiCorp repository
+Run:
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
+Add the repository:
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-
-
-Step 4 — Install Terraform
+2.2 Install Terraform
 sudo apt update
 sudo apt install -y terraform
 
-
-Step 5 — Verify the installation
+2.3 Verify the installation
 terraform -version
 
+Expected output resembles:
+Terraform v1.x.x
+on linux_amd64
 
-If a Terraform version is displayed, installation is successful. You can also check its location:
+The version number may differ.
+
+Check the executable location:
 which terraform
 
+Typically, the result is:
+/usr/bin/terraform
 
-Usually, the output is /usr/bin/terraform.
-4. Install or repair AWS CLI
-You previously encountered an AWS CLI error, so check the installation rather than assuming it works.
+Checkpoint: If terraform -version displays a version, Terraform is installed successfully.
 
-First, try:
-aws --version
-
-
-If it shows a version such as aws-cli/2.x.x, continue to Step 5.
-
-If it says command not found or Unable to load data for: cli, reinstall/update it using the following commands:
+Official guide: Terraform installation
+Step 3: Install AWS CLI
+AWS CLI lets Terraform use your AWS credentials to create cloud resources.
+3.1 Download the installer
+These commands are for a standard 64-bit Intel/AMD Ubuntu installation.
 cd ~
-
-
-sudo ./aws/install --update
-
-
-If the command says that the installer file does not exist, use this complete installation sequence instead:
-cd ~
-
-
-sudo rm -rf /usr/local/aws-cli
-
-
-sudo rm -f /usr/local/bin/aws
-
-
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
 
-
+3.2 Extract the installer
 unzip -o awscliv2.zip
 
-
+3.3 Install AWS CLI
 sudo ./aws/install
 
+If the installer says an existing version is installed and needs updating, use:
+sudo ./aws/install --update
 
-Then verify:
+3.4 Verify AWS CLI
 aws --version
 
+Expected output resembles:
+aws-cli/2.x.x Python/3.x.x Linux/...
 
-Expected result: a line beginning with aws-cli/2....
+The exact version may differ.
 
-If the same loading error remains, stop here and fix the CLI before continuing; Terraform needs working AWS credentials and authentication.
-5. Get the AWS credentials for your account
-This is the part that changes according to which AWS account or lab account you are using.
-Where do you get the keys?
-Open the AWS Console: Open AWS Console.
+Important: If you see Unable to load data for: cli, do not continue until that error is fixed. The command should display the AWS CLI version without errors.
 
+Official guide: AWS CLI installation
+Step 4: Create or access your AWS account
+4.1 Open AWS Console
+Open the official website:
 
+AWS Management Console
 
+Sign in to your AWS account.
 
+If you are using a college-provided AWS Academy or lab account, use the credentials and procedures provided by your instructor.
+4.2 Select your AWS region
+In the AWS Console, select a region from the region selector.
 
+For this practical, we will use Asia Pacific (Mumbai).
 
+Its region code is:
+ap-south-1
 
+You can choose a different region if your instructor requires it. Remember which region you select because you must use the same region when creating and verifying your instance.
+Step 5: Get AWS access credentials
+AWS CLI needs an authorized identity to access your AWS account.
+5.1 Open IAM
+1. In the AWS Console search bar, type IAM.
+2. Open Identity and Access Management.
+3. Select Users.
+4. Open the IAM user authorized for your practical.
+5. Select Security credentials.
+6. Find the Access keys section.
+5.2 Create an access key if permitted
+If your account allows it, select Create access key and follow the prompts.
 
+You will receive two values:
+- AWS Access Key ID: Identifies the access key.
+- AWS Secret Access Key: The secret associated with that key.
+Save both securely when they are displayed. The secret key generally cannot be viewed again after leaving the creation screen.
 
-Step 1: Open IAM
+If you use a college lab account, you may need temporary credentials from your instructor instead. Do not create root-user access keys.
 
-Search for IAM in the AWS Console and open it.
+Security note: Never share your access keys, publish them in GitHub, or include them in your Terraform configuration file.
 
+Official reference: AWS CLI authentication
+Step 6: Configure AWS CLI
+Return to your Ubuntu terminal.
 
-
-
-
-
-
-
-
-
-
-
-Step 2: Select your IAM user
-
-Open Users, select the user authorized for your practical, and open Security credentials.
-
-
-
-
-
-
-
-
-
-
-
-
-Step 3: Access keys
-
-Find Access keys and choose Create access key if your account allows it. Follow the prompts and securely save both the Access Key ID and Secret Access Key.
-
-
-
-Important:
-- If your college gives you AWS Academy or temporary lab credentials, use the credentials and instructions provided by your instructor. IAM access-key creation may be disabled in these accounts.
-- If you have only an AWS root account, do not create root access keys just for this practical. Use an authorized IAM identity or your college's approved credentials.
-- The Secret Access Key is normally shown only when it is created. Never share either key with anyone or paste it into main.tf, GitHub, or your practical report.
-Configure your keys in Ubuntu
 Run:
 aws configure
 
+Enter your own credentials when prompted:
+AWS Access Key ID: YOUR_ACCESS_KEY_ID
+AWS Secret Access Key: YOUR_SECRET_ACCESS_KEY
+Default region name: ap-south-1
+Default output format: json
 
-It will ask four questions:
-AWS Access Key ID [None]: ENTER_YOUR_ACCESS_KEY_ID
-AWS Secret Access Key [None]: ENTER_YOUR_SECRET_ACCESS_KEY
-Default region name [None]: ap-south-1
-Default output format [None]: json
+Replace the first two values with your actual credentials.
 
-
-Replace the first two values with your own credentials. Type ap-south-1 as an example region; you can choose a different region.
-
-Verify that AWS authentication works:
+If you selected another region, replace ap-south-1 with its code.
+Verify AWS credentials
+Run:
 aws sts get-caller-identity
 
+If authentication succeeds, the output will resemble:
+{
+    "UserId": "YOUR_USER_ID",
+    "Account": "YOUR_ACCOUNT_ID",
+    "Arn": "YOUR_IDENTITY_ARN"
+}
 
-If successful, it displays information such as your AWS account ID and the identity being used. If you get an error, fix the credentials or permissions before continuing.
-6. Create a folder for your Terraform code
-Run:
+Your actual output will contain your AWS account information.
+
+Checkpoint: Both of these commands must work before continuing:
+terraform -version
+
+aws sts get-caller-identity
+
+If the AWS command returns an authentication or permission error, resolve it before provisioning the instance.
+Step 7: Create the Terraform project folder
+In Ubuntu, run:
 mkdir -p ~/terraform-ec2
-
-
 cd ~/terraform-ec2
 
-
-Create the file:
+Create the Terraform configuration file:
 nano main.tf
 
+A text editor will open.
+Step 8: Write the Terraform configuration
+Copy and paste the following complete code into main.tf.
 
-This opens a text editor. You will enter your Terraform code in this file.
-7. Understand what changes according to your account
-Before entering the code, understand these values:
-Code or value	What you should do
-AWS access key and secret key	Use your own authorized credentials in aws configure; do not write them in the code
-AWS region	Change ap-south-1 if you want to use a different region
-t3.micro	The EC2 machine type; change it only if your account, region and budget require another type
-Terraform-EC2	The instance's display name; you can choose your own name
-Amazon Linux AMI filter	Normally keep it as written; Terraform searches for a suitable image in the selected region
-terraform apply	Creates the real resource in your AWS account
-
-For example, these are possible AWS regions:
-Region	Code
-Mumbai	ap-south-1
-Hyderabad	ap-south-2
-US East (N. Virginia)	us-east-1
-Europe (Ireland)	eu-west-1
-
-The region must be supported by your account and have the requested EC2 instance type available.
-8. Write the complete main.tf code
-Copy this code into the nano editor.
+This configuration automatically searches for a suitable Amazon Linux 2023 image in the region you choose, avoiding the need to hard-code an AMI ID from another region.
 
 
 terraform {
@@ -192,7 +165,7 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-data "aws_ami" "linux" {
+data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
 
@@ -212,164 +185,186 @@ data "aws_ami" "linux" {
   }
 }
 
-resource "aws_instance" "my_ec2" {
-  ami           = data.aws_ami.linux.id
+resource "aws_instance" "demo" {
+  ami           = data.aws_ami.amazon_linux.id
   instance_type = "t3.micro"
 
   tags = {
-    Name = "Terraform-EC2"
+    Name = "Terraform-Demo"
   }
 }
 
 output "instance_id" {
-  value = aws_instance.my_ec2.id
+  description = "ID of the EC2 instance"
+  value       = aws_instance.demo.id
 }
 
 output "public_ip" {
-  value = aws_instance.my_ec2.public_ip
+  description = "Public IP address, if assigned"
+  value       = aws_instance.demo.public_ip
+}
+
+output "instance_type" {
+  value = aws_instance.demo.instance_type
 }
 
 
 
-What each part does
-- terraform: Specifies the Terraform provider requirement.
-- provider "aws": Selects AWS and the region in which resources will be created.
-- data "aws_ami": Finds a suitable Amazon Linux 2023 image in that region.
-- resource "aws_instance": Defines the EC2 virtual machine to create.
-- instance_type: Selects the machine size.
-- tags: Gives the instance a recognizable name.
-- output: Displays the created instance ID and public IP address.
-If you want to change the region
-Change only this line for the region:
-region = "ap-south-1"
-
-
-For Hyderabad, for example:
-region = "ap-south-2"
-
-
-The AMI lookup will search for an appropriate image in the new region. You do not normally need to change the AMI ID manually.
-If you want to change the instance name
-Change:
-Name = "Terraform-EC2"
-
-
-For example:
-Name = "My-Practical-Instance"
-
-
-If your mam gives a different instance type
-Change:
-instance_type = "t3.micro"
-
-
-to the type specified in the practical, provided it is available and permitted in your account. A different type may cost more.
-Save the code
+Save the file
 In Nano:
 1. Press Ctrl + O.
 2. Press Enter.
 3. Press Ctrl + X.
-Your file is now saved as main.tf inside ~/terraform-ec2.
-9. Initialize Terraform
-Make sure you are in the correct folder:
-cd ~/terraform-ec2
+Your configuration is now saved in:
+~/terraform-ec2/main.tf
 
+Understand the important code
+Code	Purpose
+provider "aws"	Specifies the AWS provider and region.
+region = "ap-south-1"	Selects the Mumbai region.
+data "aws_ami"	Searches for an appropriate Amazon Linux image.
+resource "aws_instance" "demo"	Defines the EC2 instance to create.
+instance_type = "t3.micro"	Specifies the EC2 instance type.
+Name = "Terraform-Demo"	Assigns a recognizable name to the instance.
+output "instance_id"	Displays the instance ID after creation.
+output "public_ip"	Displays the assigned public IP, if available.
+
+
+What if you need a different region?
+Change:
+region = "ap-south-1"
+
+For example, for US East (N. Virginia), use:
+region = "us-east-1"
+
+The AMI data source searches for a suitable image in the selected region.
+
+Important: The region must support the selected instance type, and your AWS account must have permission and quota to create it.
+What if your instructor requires a different instance type?
+Change:
+instance_type = "t3.micro"
+
+to the instance type specified by your instructor, if available in your region and permitted by your account.
+
+The cost may change with the instance type.
+Step 9: Initialize Terraform
+Make sure you are inside the project folder:
+cd ~/terraform-ec2
 
 Run:
 terraform init
 
+Terraform downloads the required AWS provider and initializes the working directory.
 
-Terraform downloads the AWS provider and prepares the working directory.
-
-Expected result includes:
+A successful run displays a message similar to:
 Terraform has been successfully initialized!
 
-
-10. Validate the code
+Step 10: Validate the configuration
 Run:
 terraform validate
-
 
 Expected result:
 Success! The configuration is valid.
 
-
-This checks the Terraform configuration for syntax and configuration errors. It does not create the EC2 instance.
-11. Check the execution plan
+This checks the configuration for errors. It does not create the EC2 instance.
+Step 11: Preview the changes
 Run:
 terraform plan
 
+Terraform checks the configuration and displays the proposed changes.
 
-Terraform checks what it intends to create. You should see a plan indicating that one EC2 instance will be added, typically shown as Plan: 1 to add, 0 to change, 0 to destroy.
+Look for a summary similar to:
+Plan: 1 to add, 0 to change, 0 to destroy.
 
-If the command reports an error, fix it before proceeding.
-12. Create the EC2 instance
+This indicates that Terraform intends to create one resource.
+
+If you receive an error, fix it before continuing.
+Step 12: Provision the EC2 instance
 Run:
 terraform apply
 
+Terraform displays the proposed changes and asks for confirmation.
 
-Terraform displays the plan and asks you to confirm. Type:
+Type:
 yes
 
+Press Enter.
 
-Then press Enter.
-
-Wait until the operation finishes. You should see a result similar to:
+Wait for the operation to finish. You should see a message similar to:
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
-Outputs:
+Terraform will then display the instance ID, public IP address, and instance type.
 
-instance_id = "i-xxxxxxxxxxxxxxxxx"
-public_ip = "..."
+This is the step that actually creates the EC2 instance in your AWS account.
 
-
-The actual ID and IP will be different for your instance.
-
-This is the step that creates the actual EC2 instance in your AWS account. Installing Terraform or running terraform init alone does not create it.
-13. Verify the EC2 instance in AWS Console
-
-
-
-
-
-
-
-
-
-Step 1: Open the EC2 Console.
-
-
-
-
-
-
-
-
-
-
-
-Step 2: Select the same region you used in main.tf. For the example above, select Asia Pacific (Mumbai).
-
-
-
-
-
-
-
-
-
-
-
-Step 3: Open Instances → Instances and find Terraform-EC2. Confirm its state is Running.
-
-
-
-You can also verify the instance from Ubuntu:
+Installing Terraform, configuring AWS CLI, and running terraform init do not create the instance.
+Step 13: Verify the EC2 instance in AWS
+Open the AWS EC2 Console.
+1. Select the same AWS region you used in main.tf.
+2. Open Instances → Instances.
+3. Find the instance named Terraform-Demo.
+4. Check its instance ID and state.
+The instance should reach the Running state after startup.
+Verify using the terminal
+For the Mumbai region, run:
 aws ec2 describe-instances \
-  --filters "Name=tag:Name,Values=Terraform-EC2" \
+  --filters "Name=tag:Name,Values=Terraform-Demo" \
   --query "Reservations[].Instances[].[InstanceId,State.Name,PublicIpAddress]" \
   --output table \
   --region ap-south-1
 
 
-If you changed the instance name or region, update the filter or region accordingly.
+The output should show the instance ID, state, and public IP address, if assigned.
+
+If you changed the region in your Terraform configuration, change the --region value in this command as well.
+
+You can also display the Terraform outputs directly:
+terraform output
+
+Step 14: Capture proof for your practical
+Take screenshots of the following:
+1. terraform -version — confirms Terraform installation.
+2. aws --version — confirms AWS CLI installation.
+3. aws sts get-caller-identity — confirms AWS authentication.
+4. terraform init — confirms initialization.
+5. terraform validate — confirms the configuration is valid.
+6. terraform plan — shows the proposed resource creation.
+7. terraform apply — shows successful provisioning.
+8. The AWS EC2 Instances page — shows the instance and its state.
+9. terraform output — shows the instance ID and public IP address.
+These screenshots provide evidence that you completed the practical.
+Step 15: Clean up after the practical
+EC2 is a cloud resource, and charges may apply depending on your account and usage.
+
+
+
+addditiona:- When you have finished your demonstration and no longer need the instance, run:
+cd ~/terraform-ec2
+terraform destroy
+
+Review the proposed deletion and type yes to confirm.
+
+Wait for Terraform to report that destruction is complete. Check the AWS Console to confirm that the instance has terminated.
+
+Note: Only destroy resources you created for this practical and are authorized to delete.
+Result
+The experiment demonstrates installing Terraform and AWS CLI, configuring AWS credentials, writing Terraform configuration, and provisioning an EC2 instance on AWS.
+
+
+Conclusion for your practical journal
+You can use the following conclusion:
+Result:
+
+Terraform and AWS CLI were installed and configured successfully. An EC2 instance was provisioned on Amazon Web Services using Terraform. The instance ID, public IP address, and running state were verified through the AWS Console.
+
+Conclusion:
+
+This practical demonstrates Infrastructure as Code (IaC), which allows cloud resources to be provisioned and managed using configuration files. Terraform simplifies the creation, verification, and management of AWS infrastructure.
+
+
+
+Final reminder: The AWS region, instance type, instance name, and credentials depend on your requirements and AWS account. Keep the selected region consistent throughout the practical, and verify that your account has the permissions and quota needed to create the EC2 instance.
+
+
+
+
