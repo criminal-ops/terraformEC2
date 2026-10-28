@@ -1,0 +1,353 @@
+Step 2. Update Ubuntu
+Run:
+sudo apt update
+
+
+Then:
+sudo apt install -y wget curl gpg unzip
+
+
+If prompted for your Ubuntu password, type it and press Enter. The password will not appear on the screen while typing.
+
+Part 2 — Install Terraform
+Terraform is the tool that creates cloud resources from a configuration file.
+Step 3. Add the HashiCorp signing key
+Copy and run:
+wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+
+Step 4. Add the official repository
+Copy the complete command:
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+
+Step 5. Install Terraform
+Run these commands separately:
+sudo apt update
+
+
+sudo apt install -y terraform
+
+
+Step 6. Confirm Terraform is installed
+Run:
+terraform -version
+
+
+You should see a version number, such as Terraform v1.x.x.
+
+You can also check its location:
+which terraform
+
+
+Usually, this returns:
+/usr/bin/terraform
+
+
+Checkpoint: If the version appears, Terraform is installed. You do not need to install it again.
+Part 3 — Install AWS CLI v2
+AWS CLI lets your terminal communicate with AWS.
+Step 7. Download the AWS CLI installer
+Run:
+cd ~
+
+
+Download the installer:
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+
+
+Extract it:
+unzip -o awscliv2.zip
+
+
+Step 8. Install or update AWS CLI
+Run:
+sudo ./aws/install --update
+
+
+Create the correct command link:
+sudo ln -sf /usr/local/aws-cli/v2/current/bin/aws /usr/local/bin/aws
+
+
+Now verify:
+aws --version
+
+
+Expected output resembles:
+aws-cli/2.x.x Python/3.x.x Linux/...
+
+
+The exact version may differ.
+
+If you again get Unable to load data for: cli, do not continue to the credentials step yet. Run these diagnostics:
+ls -l /usr/local/aws-cli/v2/current/bin/aws
+
+
+ls -l /usr/local/aws-cli/v2/current/dist/aws
+
+
+echo $PATH
+
+
+Those outputs will help identify the installation problem.
+
+Part 4 — Get your AWS credentials (access keys)
+You need working AWS credentials before Terraform can create the EC2 instance.
+Step 9. Sign in to AWS
+Open this link in your browser:
+
+https://console.aws.amazon.com/
+
+Sign in to your AWS account.
+
+If your college provides an AWS Academy or lab account, use that account and follow your instructor's process for obtaining credentials. Some lab accounts do not allow you to create IAM users or permanent access keys.
+Step 10. Open IAM
+
+
+
+
+
+
+
+
+
+A. Search for IAM
+
+In the AWS Console search bar, type IAM and open Identity and Access Management.
+
+
+
+
+
+
+
+
+
+
+
+B. Select Users
+
+In the left menu, select Users, then open the IAM user you are authorized to use.
+
+
+
+
+
+
+
+
+
+
+
+C. Find Access keys
+
+Open Security credentials, scroll to Access keys, and choose Create access key if permitted.
+
+
+
+Follow the prompts and create a key only if your account's policy permits it. Save both values securely:
+- Access key ID — identifies the key.
+- Secret access key — the secret associated with it; you generally cannot retrieve it again after leaving the creation screen.
+Do not use your AWS sign-in password here. Do not create access keys for the root user. Use an approved IAM identity with only the permissions needed for the practical.
+
+Official guide: AWS CLI authentication and access keys.
+Part 5 — Configure AWS CLI in Ubuntu
+Step 11. Enter your credentials
+Return to Ubuntu and run:
+aws configure
+
+
+It will ask for four values.
+AWS Access Key ID
+
+Enter the access key ID you obtained from IAM.
+
+
+AWS Secret Access Key
+
+Enter the corresponding secret access key.
+
+
+Default region name
+
+Enter ap-south-1 for Mumbai.
+
+
+Default output format
+
+Enter json.
+
+
+Step 12. Test your AWS connection
+Run:
+aws sts get-caller-identity
+
+
+If successful, the terminal displays information similar to:
+{
+  "UserId": "YOUR_USER_ID",
+  "Account": "YOUR_ACCOUNT_ID",
+  "Arn": "YOUR_IDENTITY_ARN"
+}
+
+
+These are example field names; your actual output will contain your account details.
+
+Checkpoint: Do not proceed until aws --version and aws sts get-caller-identity both work.
+Part 6 — Create the Terraform project
+Step 13. Create the folder and configuration file
+Run:
+mkdir -p ~/terraform-ec2
+cd ~/terraform-ec2
+nano main.tf
+
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+data "aws_ami" "linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_instance" "my_ec2" {
+  ami           = data.aws_ami.linux.id
+  instance_type = "t3.micro"
+
+  tags = {
+    Name = "Terraform-EC2"
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.my_ec2.id
+}
+
+output "public_ip" {
+  value = aws_instance.my_ec2.public_ip
+}
+
+
+
+Save the file:
+1. Press Ctrl + O.
+2. Press Enter.
+3. Press Ctrl + X.
+You have now created main.tf, which describes the EC2 instance you want Terraform to provision.
+Part 7 — Provision the EC2 instance
+Make sure you are in the project folder:
+cd ~/terraform-ec2
+
+
+Run each command separately.
+Step 15. Initialize Terraform
+terraform init
+
+
+This downloads the AWS provider and initializes the working directory.
+Step 16. Validate the configuration
+terraform validate
+
+
+Expected result:
+Success! The configuration is valid.
+
+
+Step 17. Preview the changes
+terraform plan
+
+
+Review the proposed resources before creating them.
+Step 18. Create the EC2 instance
+terraform apply
+
+
+When asked for confirmation, type:
+yes
+
+
+Press Enter and wait for completion.
+
+Expected result:
+Apply complete!
+
+
+Terraform should display the instance ID and public IP address.
+
+This is the step that actually creates the EC2 instance in AWS. The earlier commands install tools, configure access, or validate your code.
+Part 8 — Verify the instance in AWS
+Step 19. Open the AWS Console
+Go to the EC2 Console.
+
+
+
+
+
+
+
+
+
+1. Select the correct region
+
+Choose Asia Pacific (Mumbai) — ap-south-1.
+
+
+
+
+
+
+
+
+
+
+
+2. Open Instances
+
+Look for the instance named Terraform-EC2.
+
+
+
+
+
+
+
+
+
+
+
+3. Confirm the result
+
+Check its instance ID and state. The state should be Running after startup.
+
+
+
+You can also verify from Ubuntu:
+aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=Terraform-EC2" \
+  --query "Reservations[].Instances[].[InstanceId,State.Name,PublicIpAddress]" \
+  --output table
