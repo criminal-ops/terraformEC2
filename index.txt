@@ -1,14 +1,226 @@
-Step 1: Create and Enter the Directory
-Bash
+For your Terraform practical, yes, you need AWS credentials so Terraform can access your AWS account and create the EC2 instance.
+
+I'll show you how to create an AWS Access Key ID and Secret Access Key, configure them in Ubuntu/WSL, and run your existing Terraform code.
+
+### Part 1: Create AWS access keys
+
+![Aviatrix Self Service Launch Tool (SSLT): Walkthrough Guide | Community](https://images.openai.com/static-rsc-4/BMwEycEG8Qntw-lMfkatGQonja5vW8aPwaoyZV4WSmt6pNRZgs6Uc4q6ROlbOCgxMRqggSHhSl_jL9OAreTjzBf1q2HrjV-SSRZsfnwjfBM-ylPtG-qnoGQCuaOuo_IpGoFnMpZP1k4Z9puMaO62cjkky0LaKow06D5G4IfSV8_LLwsanvH_747cHaQVACR1?purpose=fullsize)
+
+Step 1: Sign in to AWS
+
+Open the [AWS Management Console](https://console.aws.amazon.com/?utm_source=chatgpt.com) and sign in to the AWS account you will use for your practical.
+
+![Mastering IAM in AWS: Creating Users and Roles Step-by-Step](https://images.openai.com/static-rsc-4/yrO4Rurn8gA75sedCpTDLr2BSbhTJ30At1HPH0pyNfQXxU7wFoJKKDtnAjaMAEsVT_paYsk7Tk26W2QRzpdonJ1IwWDMOfmVYWiL4XAkhEvcA91WfxkCd0us5ED1CQ2SJ4kcCapquZXVvReJtBDX8gDU9uPmKKcf_G9YDpWX-INax4a-sgNlrMLHRxqRiDqG?purpose=fullsize)
+
+Step 2: Open IAM
+
+Search for IAM in the AWS search bar and open Identity and Access Management.
+
+IAM manages users and permissions in your AWS account.
+
+![How to Set Up Your First IAM User in 5 Minutes on AWS - DEV Community](https://images.openai.com/static-rsc-4/jBo2lpMcH3DP79wT3QSZxHlTWEdlSNhzn7hCKVfR2jxTOtmyXc0mNp8is0k8RsjOdXIvCkKMrK3w2o3R4II7v9LNbAtuVxVGI7HRdggkRtVWX_c7PQhy_Iyad3yQZ9MCRUjNfZEkPSCoFsEXaORHaDcvSaTExT7QSb2ImEeZEP66Yf3nEz88nUooOnGnxoEn?purpose=fullsize)
+
+Step 3: Select your IAM user
+
+Open Users and select the IAM user assigned to you for the lab.
+
+If you have no IAM user, ask your lab administrator or account administrator to create one with the necessary EC2 permissions. Avoid using your root account to create access keys.
+
+![Amazon Web Services (AWS) Command Line Interface (CLI) on Windows 11 - Nathan Obert](https://images.openai.com/static-rsc-4/cwmxP1ClLhNaBS5QMu0ki2V5vEtbVBTkQVodn-uMjKp2HOkyXN5of1RfssafXWGllcLqUB1-Sg2r2fmko4xm3nSQNeWUJKjztDFTaDWtRlprOL7acjgA6bpeVvSdOxt3STs5mIQm2Q-F42xMPqD0SlVzf0mGM4dSOGh6BMkti2K-_cdhrDhAkBPqa8KEsuPJ?purpose=fullsize)
+
+Step 4: Open Security credentials
+
+On the user's page, open the Security credentials tab and find the Access keys section.
+
+Select Create access key.
+
+![How to use AWS CLI in Windows - Beginners guide](https://images.openai.com/static-rsc-4/hDbqLLw4GMzcuGyPs181Xh_7VyCbFFgvrb7hixVq62ENlxrtS89VRK1-KF846CdUVmtUbN96PIyK88DcHIfnt-_kU4VjW8H0GztISnAQmixJqrI69FcxKT8jfBHNAnx8d7gpSt88bdrzXJDkRv0SQGV6Fg-mgdMrEl1ky7VqzNIJQJ8nzR5zHxM2raCsRv60?purpose=fullsize)
+
+Step 5: Choose the use case
+
+Select Command Line Interface (CLI) if that option is offered, acknowledge the recommendation, and continue.
+
+Add an optional description such as `Terraform-Practical`, then select Create access key.
+
+![How to connect to PostgreSQL AWS RDS using IAM Authentication](https://images.openai.com/static-rsc-4/fOemsnEP_zIGofmdTssJJMrIB7EOmU4ZmQT-KeMy7j7FgCZdR85AIiRcsF6EJwlcbUjKUDrshE-LXkAJGqY41NA8COyAj-v_Pj-Wbw2oQNAPfDTccb7nWDHXTo_izSnNiThm7AGLx3ofo9uMj8N67tZYdxisz_MNFoVwL29rWxf8FnBPq12R-XaZ87EXY51e?purpose=fullsize)
+
+Step 6: Save both keys
+
+AWS displays two values:
+
+* Access Key ID — identifies the access key.
+
+* Secret Access Key — the secret used to authenticate.
+
+Download the CSV or copy both values into a secure password manager. The secret is generally shown only when the key is created.
+
+Never share either key in a screenshot, chat, GitHub repository, or your Terraform file.
+
+### Part 2: Configure the keys in Ubuntu (WSL)
+
+After creating the keys, open your Ubuntu terminal (not Windows CMD) and follow these steps.
+
+### Step 7: Check whether AWS CLI is installed
+
+```bash
+aws --version
+```
+
+If you see an output like `aws-cli/2.x.x`, continue to Step 8.
+
+If the command is not found, install AWS CLI using the [official AWS CLI installation instructions](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html?utm_source=chatgpt.com).
+
+### Step 8: Configure your credentials
+
+Run:
+
+```bash
+aws configure
+```
+
+Enter the following when prompted:
+
+```text
+AWS Access Key ID: YOUR_ACCESS_KEY_ID
+AWS Secret Access Key: YOUR_SECRET_ACCESS_KEY
+Default region name: eu-north-1
+Default output format: json
+```
+
+Replace the two placeholder values with the actual keys from AWS. Do not type the placeholder text literally.
+
+AWS CLI stores the credentials in `~/.aws/credentials`, which Terraform can use automatically. AWS Command Line Interface +1
+
+### Step 9: Verify that the keys work
+
+Run:
+
+```bash
+aws sts get-caller-identity
+```
+
+If successful, AWS returns information containing your account ID and the IAM identity you are using.
+
+If you get `InvalidClientTokenId`, `InvalidAccessKeyId`, or `SignatureDoesNotMatch`, check the keys you entered.
+
+If you get `AccessDenied`, your identity may lack the necessary permissions.
+
+### Part 3: Run your Terraform practical
+
+Now execute your original commands in Ubuntu:
+
+```bash
 mkdir -p ~/terraform_ec2_lab
 cd ~/terraform_ec2_lab
-Step 2: Ensure User Ownership of Folder Permissions
-Bash
-sudo chown -R $USER:$USER .
-Step 3: Create the Terraform Configuration (main.tf)
-Write the configuration directly to main.tf:
+```
 
-Bash
+Create your `main.tf` file using the configuration you provided, and then run:
+
+```bash
+terraform init
+terraform validate
+terraform plan
+terraform apply -auto-approve
+```
+
+Terraform will use your configured credentials to create the EC2 instance in `eu-north-1` (Stockholm), provided your account and IAM permissions allow it.
+
+To verify the instance:
+
+```bash
+terraform output
+```
+
+You can also check the EC2 console by selecting the Europe (Stockholm) — eu-north-1 region.
+
+When you have finished your practical, clean up the resources:
+
+```bash
+terraform destroy -auto-approve
+```
+
+Important: Your `terraform apply` command can create billable AWS resources. Check your account's available instance types, quotas, and pricing before proceeding. Also, `t3.micro` availability and free-tier eligibility depend on your account and current AWS terms.
+
+### Common problems to remember for the exam
+
+| Error                        | What to check                                                 |
+| ---------------------------- | ------------------------------------------------------------- |
+| Unable to locate credentials | Run aws configure.                                            |
+| AccessDenied                 | Check IAM permissions for EC2 and related operations.         |
+| InvalidAMIID.NotFound        | Check the AWS region and AMI lookup filters.                  |
+| terraform: command not found | Install Terraform and verify its PATH.                        |
+| Instance creation fails      | Check account quotas, instance availability, and permissions. |
+
+For security, never put your access keys directly into `main.tf` or upload them to GitHub. If your college provides temporary AWS credentials or a lab-managed role, use that approved authentication method instead of creating permanent keys.
+
+Official reference: [AWS documentation — Access keys and CLI authentication](https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html?utm_source=chatgpt.com).
+
+
+### Terraform EC2 Lab Practical — Step-by-Step
+
+Follow these steps for your exact Terraform code. Since you have already downloaded the Terraform and AWS CLI tools, start with creating the AWS access keys and configuring them.
+
+### Step 1: Create AWS access keys
+
+* Open the [AWS Console](https://console.aws.amazon.com/?utm_source=chatgpt.com).
+
+* Search for IAM.
+
+* Select Users and open your assigned IAM user.
+
+* Open Security credentials.
+
+* Under Access keys, click Create access key.
+
+* Select Command Line Interface (CLI) and continue.
+
+* Create the key and securely save the Access Key ID and Secret Access Key.
+
+If you use a college-provided AWS account, follow your administrator's instructions. Do not create access keys for the root account.
+
+### Step 2: Configure AWS credentials in Ubuntu
+
+Open Ubuntu (WSL) and execute:
+
+```bash
+aws configure
+```
+
+Enter your actual credentials when prompted:
+
+```text
+AWS Access Key ID: YOUR_ACCESS_KEY_ID
+AWS Secret Access Key: YOUR_SECRET_ACCESS_KEY
+Default region name: eu-north-1
+Default output format: json
+```
+
+Verify the credentials:
+
+```bash
+aws sts get-caller-identity
+```
+
+If this displays your account and identity, continue.
+
+### Step 3: Create and enter the directory
+
+```bash
+mkdir -p ~/terraform_ec2_lab
+cd ~/terraform_ec2_lab
+```
+
+### Step 4: Set folder ownership
+
+```bash
+sudo chown -R $USER:$USER .
+```
+
+### Step 5: Create `main.tf`
+
+Copy and run your exact configuration:
+
+```bash
 cat << 'EOF' > main.tf
 terraform {
   required_providers {
@@ -59,38 +271,104 @@ output "instance_public_ip" {
   value       = aws_instance.devops_server.public_ip
 }
 EOF
-Step 4: Initialize the Working Directory
-Download provider plugins:
+```
 
-Bash
+Check the file:
+
+```bash
+ls
+```
+
+Expected output: `main.tf`
+
+### Step 6: Initialize Terraform
+
+```bash
 terraform init
-Step 5: Validate Configuration
-Bash
+```
+
+### Step 7: Validate configuration
+
+```bash
 terraform validate
-Step 6: Review the Execution Plan
-Bash
+```
+
+Expected output: `Success! The configuration is valid.`
+
+### Step 8: Review the execution plan
+
+```bash
 terraform plan
-Step 7: Apply the Configuration and Provision the EC2 Instance
-Bash
+```
+
+Check the planned EC2 instance creation.
+
+### Step 9: Create the EC2 instance
+
+```bash
 terraform apply -auto-approve
-Step 8: View the Generated Outputs
-Display the instance ID and public IP:
+```
 
-Bash
+Wait until Terraform reports `Apply complete!`.
+
+### Step 10: View the outputs
+
+```bash
 terraform output
-To view the full state file configuration:
+```
 
-Bash
+To see the full state:
+
+```bash
 terraform show
-Step 9: Verify the Live Instance on AWS via CLI
-Bash
+```
+
+### Step 11: Verify the instance using AWS CLI
+
+```bash
 aws ec2 describe-instances \
   --region eu-north-1 \
   --filters "Name=instance-state-name,Values=running" \
   --query "Reservations[*].Instances[*].[InstanceId,PublicIpAddress,State.Name,Tags[?Key=='Name'].Value|[0]]" \
   --output table
-Step 10: Destroy Resources (Post-Lab Cleanup)
-Remove provisioned resources to avoid unwanted cloud charges:
+```
 
-Bash
+You can also open AWS Console → EC2 → Instances and select the Europe (Stockholm), `eu-north-1` region.
+
+### Step 12: Destroy resources after the lab
+
+```bash
 terraform destroy -auto-approve
+```
+
+This deletes the EC2 instance managed by your configuration.
+
+Important: Your IAM identity must have the necessary permissions. Keep your credentials private, and run the destroy command after the practical to avoid ongoing charges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
